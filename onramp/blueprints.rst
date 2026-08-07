@@ -1203,6 +1203,109 @@ then add the route as follows:
          - to: 10.203.1.0/24
            via: 10.203.1.1
 
+Lawful Interception
+~~~~~~~~~~~~~~~~~~~~~~
+
+This blueprint deploys SD-Core with 3GPP/ETSI Lawful Interception (LI)
+enabled. The AMF and SMF act as Interception-Related-Information Points
+of Interception (IRI-POIs): they are provisioned over the ETSI X1
+interface and deliver xIRI over X2 to a Mediation and Delivery Function
+(MDF2). The SMF additionally acts as a Content-of-Communication
+Triggering Function, instructing the UPF—the Content-of-Communication
+POI (CC-POI)—to duplicate a tasked subscriber's user plane and deliver
+xCC over X3 to an MDF3. The Administration Function (ADMF) and the MDFs
+are external, third-party systems (for example OpenLI); SD-Core
+implements only the in-network POIs and the interfaces toward them.
+
+LI is opt-in and off by default: the stock SD-Core charts and images
+carry the LI code, and this blueprint simply turns it on. With
+``lawful_intercept.enabled`` set to ``false``, the deployment renders
+exactly as an ordinary, LI-free Core.
+
+The LI blueprint includes the following:
+
+* Global vars file ``vars/main-li.yml`` gives the overall blueprint
+  specification. It is the Quick Start deployment with an added
+  ``lawful_intercept`` section.
+
+* Inventory file ``hosts.ini`` is identical to that used in the Quick
+  Start deployment, or in the :doc:`Emulated RAN </onramp/gnbsim>`
+  section when driving traffic with gNBsim.
+
+* No new Make targets or Ansible roles. LI is rendered as conditional
+  blocks in the standard values template
+  (``deps/5gc/roles/core/templates/sdcore-5g-values.yaml``), gated on
+  ``lawful_intercept.enabled``, so the base ``5gc-install`` target
+  deploys it. The blueprint additionally requires a chart release and
+  images that include LI support.
+
+Because the ADMF and MDFs are external and the LI credentials are
+provisioned out of band, the following prerequisites must be met before
+deploying—none of them are created by OnRamp:
+
+* **LI credentials.** Each network function authenticates its X1 peers
+  with a mutual-TLS certificate from a dedicated LI CA, kept separate
+  from the SBI certificates. Pre-create, per NF, a Kubernetes ``Secret``
+  (default names ``amf-li-certs``, ``smf-li-certs``, ``upf-li-certs``)
+  holding ``tls.crt`` / ``tls.key`` / ``ca.crt``. The CA and private
+  keys never belong in cluster configuration.
+
+* **The LI system.** An ADMF (to task the NFs over X1) and MDF2/MDF3 (to
+  receive xIRI/xCC) must be reachable at the addresses configured in the
+  ``lawful_intercept`` block.
+
+* **X1 reachability.** The ADMF is the X1 client: it dials the AMF and
+  SMF at their X1 NodePorts. Configure the ADMF with those endpoints, and
+  ensure each network function certificate's ``subjectAltName`` covers
+  the address the ADMF dials. Restrict the NodePorts to the ADMF at the
+  node with a host firewall rule—not a Kubernetes ``NetworkPolicy``,
+  which would isolate the pod for all its other traffic and take the core
+  down.
+
+To use the LI blueprint, first copy the vars file to ``main.yml``:
+
+.. code-block::
+
+   $ cd vars
+   $ cp main-li.yml main.yml
+
+You will see the main difference is the addition of the
+``lawful_intercept`` section:
+
+.. code-block::
+
+   lawful_intercept:
+     enabled: true
+     admf_id: admf-id                              # ADMF identifier (must match its certificate)
+     admf_url: https://10.0.60.122:9443/X1/ADMF    # ADMF X1 endpoint (NE-initiated reports)
+     mdf2: 10.0.60.122:42069                       # xIRI (X2) delivery destination
+     mdf3: 10.0.60.122:42069                       # xCC (X3) delivery destination
+     amf_x1_nodeport: 30843                        # NodePort the ADMF dials the AMF X1 on
+     smf_x1_nodeport: 30844                        # NodePort the ADMF dials the SMF X1 on
+
+Everything else—the network-element identifiers, certificate ``Secret``
+names and mount paths, the X1 port and service names, the X3 socket, the
+keepalive window, and the SMF's list of UPF triggers—defaults in the
+chart. A normal single-UPF deployment therefore needs nothing beyond the
+block above; multi-UPF or renamed deployments override the trigger list
+in the chart values (``config.smf.li.upfTriggers``).
+
+Then edit ``hosts.ini`` and ``vars/main.yml`` to match your local target
+servers and LI system, pre-create the LI ``Secret`` objects described
+above, and deploy the base system as in previous sections:
+
+.. code-block::
+
+   $ make k8s-install
+   $ make 5gc-install
+   $ make gnbsim-install
+
+Once deployed, the ADMF can task the AMF and SMF over X1, and for a
+Content-of-Communication warrant the SMF triggers the UPF, which delivers
+the duplicated packets to the MDF3. By design, nothing about an
+intercepted subscriber appears in the network functions' logs, metrics,
+or alarms.
+
 Guidelines for Blueprints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
