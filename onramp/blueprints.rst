@@ -1214,8 +1214,8 @@ interface and deliver xIRI over X2 to a Mediation and Delivery Function
 Triggering Function, instructing the UPF—the Content-of-Communication
 POI (CC-POI)—to duplicate a tasked subscriber's user plane and deliver
 xCC over X3 to an MDF3. The Administration Function (ADMF) and the MDFs
-are external, third-party systems (for example OpenLI); SD-Core
-implements only the in-network POIs and the interfaces toward them.
+are external, third-party systems; SD-Core implements only the
+in-network POIs and the interfaces toward them.
 
 LI is opt-in and off by default: the stock SD-Core charts and images
 carry the LI code, and this blueprint simply turns it on. With
