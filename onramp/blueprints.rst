@@ -1277,9 +1277,9 @@ You will see the main difference is the addition of the
    lawful_intercept:
      enabled: true
      admf_id: admf-id                              # ADMF identifier (must match its certificate)
-     admf_url: https://10.0.60.122:9443/X1/ADMF    # ADMF X1 endpoint (NE-initiated reports)
-     mdf2: 10.0.60.122:42069                       # xIRI (X2) delivery destination
-     mdf3: 10.0.60.122:42069                       # xCC (X3) delivery destination
+     admf_url: https://192.0.2.1:9443/X1/ADMF      # ADMF X1 endpoint (NE-initiated reports)
+     mdf2: 192.0.2.1:42069                         # xIRI (X2) delivery destination
+     mdf3: 192.0.2.1:42069                         # xCC (X3) delivery destination
      amf_x1_nodeport: 30843                        # NodePort the ADMF dials the AMF X1 on
      smf_x1_nodeport: 30844                        # NodePort the ADMF dials the SMF X1 on
 
