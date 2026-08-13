@@ -1285,10 +1285,14 @@ You will see the main difference is the addition of the
 
 Everything else—the network-element identifiers, certificate ``Secret``
 names and mount paths, the X1 port and service names, the X3 socket, the
-keepalive window, and the SMF's list of UPF triggers—defaults in the
-chart. A normal single-UPF deployment therefore needs nothing beyond the
-block above; multi-UPF or renamed deployments override the trigger list
-in the chart values (``config.smf.li.upfTriggers``).
+keepalive window, the SMF's list of UPF triggers, and the two bulk
+operations ETSI TS 103 221-1 leaves to advance agreement between the
+operator and the agency—defaults in the chart, in the last case to the
+standard's own behaviour. A normal single-UPF deployment therefore needs
+nothing beyond the block above; multi-UPF or renamed deployments override
+the trigger list in the chart values (``config.smf.li.upfTriggers``), and
+a deployment whose agreement differs from the standard's defaults sets
+the bulk-operation keys described in ``li/README.md``.
 
 Then edit ``hosts.ini`` and ``vars/main.yml`` to match your local target
 servers and LI system, pre-create the LI ``Secret`` objects described
