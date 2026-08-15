@@ -1217,6 +1217,14 @@ xCC over X3 to an MDF3. The Administration Function (ADMF) and the MDFs
 are external, third-party systems; SD-Core implements only the
 in-network POIs and the interfaces toward them.
 
+What is implemented is a subset of the standards named above, and where
+it ends is recorded per clause and per field rather than left to be
+discovered during an integration. ``CONFORMANCE.md`` at the root of the
+``li`` module indexes one disposition per interface — X1, X2/X3 and the
+TS 33.128 record content — and lists the open gaps across all three in
+one place. Read it before committing to a deployment: it is the answer
+to "does this satisfy my obligations", which this page does not attempt.
+
 LI is opt-in and off by default: the stock SD-Core charts and images
 carry the LI code, and this blueprint simply turns it on. With
 ``lawful_intercept.enabled`` set to ``false``, the deployment renders
